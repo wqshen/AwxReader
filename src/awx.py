@@ -65,10 +65,11 @@ class AwxGridField(object):
         from matplotlib.font_manager import FontProperties
         font = FontProperties(fname="../data/msyh.ttf", size=14)
         fig = plt.figure(figsize=(12, 7))
-        ax = plt.axes(projection=ccrs.PlateCarree())
-        cs = ax.pcolormesh(self.lon, self.lat, self.data)
+        ax = plt.axes(projection=ccrs.Orthographic(110, 20))
+        cs = ax.pcolormesh(self.lon, self.lat, self.data, transform=ccrs.PlateCarree())
         fig.colorbar(cs)
         ax.coastlines()
+        ax.gridlines()
         plt.title('{}卫星{} {:%Y-%m-%d %H:%M}'.format(self.satellite,
                                                      self._element_dict[self.head_level2['grid_element']],
                                                      self.obs_start_datetime(BJT=True)), fontproperties=font)

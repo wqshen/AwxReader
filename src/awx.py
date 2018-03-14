@@ -64,7 +64,7 @@ class AwxGridField(object):
         import cartopy.crs as ccrs
         from matplotlib.font_manager import FontProperties
         font = FontProperties(fname="../data/msyh.ttf", size=14)
-        fig = plt.figure(figsize=(12, 8))
+        fig = plt.figure(figsize=(12, 7))
         ax = plt.axes(projection=ccrs.PlateCarree())
         cs = ax.pcolormesh(self.lon, self.lat, self.data)
         fig.colorbar(cs)
@@ -194,7 +194,7 @@ if __name__ == '__main__':
     agf = AwxGridField(pathfile)
     print(agf)
 
-    agf.clipper((slice(30,27), slice(118,121)))
+    agf.clipper((slice(55,0), slice(70,140)))
     agf.plot()
 
     # agf.to_netcdf('test.nc')

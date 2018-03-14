@@ -10,7 +10,7 @@
     # 输出文件信息
     print(agf)
     # 使用经纬度裁剪数据
-    agf.clipper((slice(30,27), slice(118,121)))
+    agf.clipper((slice(55,0), slice(70,140)))
     # 绘图
     agf.plot()
     # 输出netCDF4压缩格式（依赖于netCDF4库）

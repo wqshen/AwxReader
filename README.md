@@ -22,4 +22,4 @@
     # df = agf.to_dataframe()
     # print(df)
 
-![样例图片](../doc/plot_example.png)
+![](doc/plot_example.png)

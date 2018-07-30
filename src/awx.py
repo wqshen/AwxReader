@@ -71,8 +71,8 @@ class AwxGridField(object):
         ax.coastlines()
         ax.gridlines()
         plt.title('{}卫星{} {:%Y-%m-%d %H:%M}'.format(self.satellite,
-                                                     self._element_dict[self.head_level2['grid_element']],
-                                                     self.obs_start_datetime(BJT=True)), fontproperties=font)
+                                                         self._element_dict[self.head_level2['grid_element']],
+                                                         self.obs_start_datetime(BJT=True)), fontproperties=font)
         plt.show()
 
     def to_dataframe(self):
@@ -142,7 +142,8 @@ class AwxGridField(object):
 
     def _load_field(self):
         hgrid_num, vgrid_num = self.head_level2['hgrid_num'], self.head_level2['vgrid_num']
-        return np.fromstring(self.file.read(hgrid_num*vgrid_num), 'i1').reshape(hgrid_num, vgrid_num)
+        data = np.fromstring(self.file.read(hgrid_num*vgrid_num), 'i1').reshape(hgrid_num, vgrid_num)
+        return (data + self.head_level2['grid_base'])/self.head_level2['grid_scale']
 
     def _load_head_level1(self):
         self.head_level1 = {k:v for k,v in zip(self._head_level1.keys(), unpack('12s9h8sh', self.file.read(40)))}
@@ -190,18 +191,18 @@ class AwxGridField(object):
                 34:'600hPa相对湿度', 35:'500hPa相对湿度', 36:'400hPa相对湿度', 37:'300hPa相对湿度'}
 
 
-if __name__ == '__main__':
-    pathfile = r'../data/FY2E_CTA_MLT_OTG_20170126_0130.AWX'
+def test_read(pathfile):
     agf = AwxGridField(pathfile)
     print(agf)
-
-    agf.clipper((slice(55,0), slice(70,140)))
+    agf.clipper((slice(55, 0), slice(70, 140)))
     agf.plot()
 
-    # agf.to_netcdf('test.nc')
+def test_convert_netcdf(pathfile, outfile):
+    agf = AwxGridField(pathfile)
+    print(agf)
+    agf.to_netcdf(outfile)
 
-    # da = agf.to_dataarray()
-    # print(da)
-
-    # df = agf.to_dataframe()
-    # print(df)
+if __name__ == '__main__':
+    test_read(r'../data/FY2E_CTA_MLT_OTG_20170126_0130.AWX')
+    test_read(r'../data/FY2G_TBB_IR1_OTG_20150729_0000.AWX')
+    test_convert_netcdf(r'../data/FY2G_TBB_IR1_OTG_20150729_0000.AWX', outfile=r'../data/awx_converted_netcdf.nc')

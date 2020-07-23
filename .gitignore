@@ -1,0 +1,21 @@
+# Created by .ignore support plugin (hsz.mobi)
+### Example user template template
+### Example user template
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+.vscode/
+*.py[cod]
+__pycache__/
+*/__pycache__/
+*.egg-info
+dask-worker-space/
+docs/build
+build/
+dist/
+.idea/
+log.*
+log

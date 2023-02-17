@@ -284,7 +284,7 @@ class Awx(object):
             lons, lats = transformer.transform(x2d, y2d)
             lons = xr.DataArray(lons, dims=('y', 'x'), coords={'y': y, 'x': x})
             lats = xr.DataArray(lats, dims=('y', 'x'), coords={'y': y, 'x': x})
-            return {'time': [time], 'lat': lats, 'lon': lons, 'x': x, 'y': y, 'proj4': proj}
+            return {'time': [time], 'lat': lats, 'lon': lons, 'x': x, 'y': y, 'proj4': proj_str}
 
     def proj_scale_factor(self, std_parallel):
         """calculate projection scale factor"""
@@ -374,4 +374,9 @@ def _convert_to_nc():
         sys.exit(1)
     args = parser.parse_args()
     awx = Awx(args.filename)
-    awx._ds.to_netcdf(args.outfile, encoding={awx._ds.name: {"zlib": True, "complevel": 9}})
+    ds = awx.values
+    ds.name = 'AWX'
+    ds = ds.to_dataset()
+    comp = dict(zlib=True, complevel=5)
+    encoding = {var: comp for var in ds.data_vars}
+    ds.to_netcdf(args.outfile, encoding=encoding)

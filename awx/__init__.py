@@ -254,8 +254,6 @@ class Awx(object):
 
     def image_coordinate(self) -> dict:
         """calculate AWX image field coordination"""
-        from pyproj import CRS, Transformer
-
         h2 = self.head2
         if hasattr(h2, 'year'):
             time = datetime(h2.year, h2.month, h2.day, h2.hour, h2.minute)

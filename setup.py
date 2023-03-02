@@ -8,7 +8,7 @@ from os.path import exists
 from setuptools import setup, find_packages
 
 name = 'awx'
-version = "0.1"
+version = "0.1.1"
 
 install_requires = [
     'numpy',
@@ -31,7 +31,9 @@ setup(
     description='AWX Satellite Data Reader',
     author='wqshen',
     author_email='wqshen91@163.com',
-    long_description=open('README.rst').read() if exists('README.rst') else '',
+    long_description_content_type='text/markdown',
+    long_description=open('README.md', 'r', encoding='utf8').read() if exists('README.md') else '',
+    url='https://github.com/wqshen/AwxReader',
     python_requires='>=3.7',
     install_requires=install_requires,
     packages=find_packages(),

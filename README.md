@@ -11,6 +11,14 @@ This package provide a user-friendly interface to AWX data, it can read 3 type A
 - en [English](README.md)
 - zh_CN [简体中文](README.zh-CN.md)
 
+## Install
+
+install from pypi
+
+```shell
+pip install awx
+```
+
 ## Quick Start
 
 ### Basic usage for library
@@ -55,7 +63,7 @@ plt.savefig('ANI_VIS_R02_20230217_1000_FY2G_NoProj.png', dpi=300)
 plt.show()
 ```
 
-![ANI_VIS_R02_20230217_1000_FY2G_NoProj.png](doc%2FANI_VIS_R02_20230217_1000_FY2G_NoProj.png)
+![ANI_VIS_R02_20230217_1000_FY2G_NoProj.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_VIS_R02_20230217_1000_FY2G_NoProj.png)
 
 **3 Draw data in native projection**
 
@@ -99,9 +107,9 @@ plt.show()
 
 ```
 
-![ANI_VIS_R02_20230217_1000_FY2G.png](doc%2FANI_VIS_R02_20230217_1000_FY2G.png)
+![ANI_VIS_R02_20230217_1000_FY2G.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_VIS_R02_20230217_1000_FY2G.png)
 
-![ANI_IR2_R01_20230217_0800_FY2G.png](doc%2FANI_IR2_R01_20230217_0800_FY2G.png)
+![ANI_IR2_R01_20230217_0800_FY2G.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_IR2_R01_20230217_0800_FY2G.png)
 
 ### Command line procedure
 
@@ -115,7 +123,7 @@ Usage:
 
 Example:
 
-    `awx_info FY2G_TBB_IR1_OTG_20150729_0000.AWX`
+    awx_info FY2G_TBB_IR1_OTG_20150729_0000.AWX
 
 #### awx_to_nc
 
@@ -127,4 +135,4 @@ Usage:
 
 Example:
 
-    `awx_to_nc FY2G_TBB_IR1_OTG_20150729_0000.AWX FY2G_TBB_IR1_OTG_20150729_0000.nc`
+    awx_to_nc FY2G_TBB_IR1_OTG_20150729_0000.AWX FY2G_TBB_IR1_OTG_20150729_0000.nc

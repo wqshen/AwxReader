@@ -223,6 +223,7 @@ class Awx(object):
             raise NotImplementedError("Not supported product kind.")
         self.data = data
         self._ds = self.to_xarray()
+
     def to_xarray(self) -> xr.DataArray:
         """convert to xarray.DataArray"""
         attrs = self.head1.__dict__
@@ -272,8 +273,8 @@ class Awx(object):
             dx, dy = h2.reso_h / 100. * 1000, h2.reso_v / 100. * 1000,
             ll_x = cx - (dx * h2.width / 2.)
             ll_y = cy - (dy * h2.height / 2.)
-            ur_x = cx + (dx * h2.width / 2.)
-            ur_y = cy + (dy * h2.height / 2.)
+            ur_x = cx + (dx * (h2.width / 2. - 1))
+            ur_y = cy + (dy * (h2.height / 2. - 1))
             x = np.linspace(ll_x, ur_x, h2.width)
             y = np.linspace(ur_y, ll_y, h2.height)
 
@@ -308,7 +309,10 @@ class Awx(object):
             proj = f'+proj=lcc +lon_0={h2.clon / 100.} +lat_0={h2.clat / 100.} ' \
                    f'+lat_1={h2.std_lat1_or_lon / 100.} +lat_2={h2.std_lat2 / 100.}'
         elif proj_type == 2:
-            proj = f'+proj=merc +lon_0={h2.clon / 100.} +lat_ts={h2.std_lat1_or_lon / 100.}'
+            # TODO: find the reason why the std lat in data head is wrong ?
+            # set std lat to 0 (default), otherwise the reprojected coordination error
+            # proj = f'+proj=merc +lon_0={h2.clon / 100.} +lat_ts={h2.std_lat1_or_lon / 100.}'
+            proj = f'+proj=merc +lon_0={h2.clon / 100.}'
         elif proj_type == 3:
             proj = f'+proj=stere +lat_0={h2.clat / 100.} +lon_0={h2.clon / 100.} ' \
                    f'+k={self.proj_scale_factor(h2.std_lat1_or_lon / 100.)}'

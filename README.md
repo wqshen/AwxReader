@@ -62,8 +62,7 @@ plt.pcolormesh(dar.lon, dar.lat, dar, cmap='Greys_r')
 plt.savefig('ANI_VIS_R02_20230217_1000_FY2G_NoProj.png', dpi=300)
 plt.show()
 ```
-
-![ANI_VIS_R02_20230217_1000_FY2G_NoProj.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_VIS_R02_20230217_1000_FY2G_NoProj.png)
+![ANI_VIS_R02_20230308_1400_FY2G_NoProj.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_VIS_R02_20230308_1400_FY2G_NoProj.png)
 
 **3 Draw data in native projection**
 
@@ -74,8 +73,8 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 from awx import Awx
 
-# fpath = r'./data/ANI_VIS_R02_20230217_1000_FY2G.AWX'  # Mercator
-fpath = r'./data/ANI_IR2_R01_20230217_0800_FY2G.AWX'  # lambert
+# fpath = r'./sampledata/ANI_VIS_R02_20230308_1400_FY2G.AWX'  # Mercator
+fpath = r'./sampledata/ANI_VIS_R01_20230308_1400_FY2G.AWX'  # lambert
 ds = Awx(pathfile=fpath)
 print(ds)
 dar = ds.values.squeeze()
@@ -107,9 +106,10 @@ plt.show()
 
 ```
 
-![ANI_VIS_R02_20230217_1000_FY2G.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_VIS_R02_20230217_1000_FY2G.png)
+![ANI_VIS_R02_20230308_1400_FY2G.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_VIS_R02_20230308_1400_FY2G.png)
 
-![ANI_IR2_R01_20230217_0800_FY2G.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_IR2_R01_20230217_0800_FY2G.png)
+![ANI_VIS_R01_20230308_1400_FY2G.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_VIS_R01_20230308_1400_FY2G.png)
+
 
 ### Command line procedure
 

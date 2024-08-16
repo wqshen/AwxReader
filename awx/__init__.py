@@ -300,7 +300,7 @@ class Awx(object):
             ur_x = cx + (dx * (h2.width / 2. - 1))
             ur_y = cy + (dy * (h2.height / 2. - 1))
             x = np.linspace(ll_x, ur_x, h2.width)
-            y = np.linspace(ll_y, ur_y, h2.height)
+            y = np.linspace(ur_y, ll_y, h2.height)
 
             transformer = Transformer.from_crs(proj, "EPSG:4326", always_xy=True)
             x2d, y2d = np.meshgrid(x, y)

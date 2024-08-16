@@ -30,7 +30,7 @@ pip install awx
 import os
 from awx import Awx
 
-pathfile = r'../data/ANI_VIS_R02_20230217_1000_FY2G.AWX'
+pathfile = r'../sampledata/ANI_VIS_R02_20230217_1000_FY2G.AWX'
 ds = Awx(pathfile)
 
 # print file head information
@@ -54,7 +54,7 @@ ds.values.to_netcdf('ANI_VIS_R02_20230217_1000_FY2G.nc')
 import matplotlib.pyplot as plt
 from awx import Awx
 
-fpath = r'./data/ANI_VIS_R02_20230217_1000_FY2G.AWX'
+fpath = r'./sampledata/ANI_VIS_R02_20230217_1000_FY2G.AWX'
 ds = Awx(pathfile=fpath)
 print(ds)
 dar = ds.values.squeeze()

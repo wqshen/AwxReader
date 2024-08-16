@@ -41,6 +41,30 @@ class AwxFileName:
 
 
 @dataclass
+class AwxDaasFileName:
+    z: str
+    dtype: str
+    c: str
+    center: str
+    gentime: str
+    p: str
+    satellite: str
+    product_type: str
+    channel: str
+    proj: str
+    obs_date: str
+    obs_start_time: str
+
+    def __post_init__(self):
+        self._cast_fields_types()
+
+    def _cast_fields_types(self):
+        for field in fields(cast(dataclass, self)):
+            field_value = getattr(self, field.name)
+            setattr(self, field.name, field.type(field_value))
+
+
+@dataclass
 class AwxHead:
     filename_Sat96: str
     int_order: int = 0
@@ -95,7 +119,7 @@ class AwxPositioning:
 @dataclass
 class Awx(object):
     pathfile: Optional[Union[str, PathLike]] = None
-    name: Optional[AwxFileName] = None
+    name: Optional[AwxFileName | AwxDaasFileName] = None
     head1: AwxHead = None
     head2: Union[AwxGeosImageHead, AwxPolarImageHead, AwxGridHead] = None
     palette: Optional[np.ndarray] = None
@@ -276,7 +300,7 @@ class Awx(object):
             ur_x = cx + (dx * (h2.width / 2. - 1))
             ur_y = cy + (dy * (h2.height / 2. - 1))
             x = np.linspace(ll_x, ur_x, h2.width)
-            y = np.linspace(ur_y, ll_y, h2.height)
+            y = np.linspace(ll_y, ur_y, h2.height)
 
             transformer = Transformer.from_crs(proj, "EPSG:4326", always_xy=True)
             x2d, y2d = np.meshgrid(x, y)
@@ -329,7 +353,13 @@ class Awx(object):
 
     def _deconstruct_filename(self, filename):
         """deconstruct AWX filename to get base information of file"""
-        self.name = AwxFileName(*os.path.splitext(os.path.basename(filename))[0].split('_'))
+        name_segs = os.path.splitext(os.path.basename(filename))[0].split('_')
+        if len(name_segs) == 6:
+            self.name = AwxFileName(*name_segs)
+        elif len(name_segs) == 12:
+            self.name = AwxDaasFileName(*name_segs)
+        else:
+            pass
 
     @property
     def values(self) -> xr.DataArray:

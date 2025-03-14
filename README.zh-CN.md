@@ -55,8 +55,7 @@ plt.savefig('ANI_VIS_R02_20230217_1000_FY2G_NoProj.png', dpi=300)
 plt.show()
 ```
 
-![ANI_VIS_R02_20230217_1000_FY2G_NoProj.png](doc%2FANI_VIS_R02_20230217_1000_FY2G_NoProj.png)
-
+![ANI_VIS_R02_20230308_1400_FY2G_NoProj.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_VIS_R02_20230308_1400_FY2G_NoProj.png)
 **3 以数据指定的投影方式绘制云图**
 
 ```python
@@ -98,9 +97,52 @@ plt.show()
 
 ```
 
-![ANI_VIS_R02_20230217_1000_FY2G.png](doc%2FANI_VIS_R02_20230217_1000_FY2G.png)
+![ANI_VIS_R02_20230308_1400_FY2G.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_VIS_R02_20230308_1400_FY2G.png)
 
-![ANI_IR2_R01_20230217_0800_FY2G.png](doc%2FANI_IR2_R01_20230217_0800_FY2G.png)
+![ANI_VIS_R01_20230308_1400_FY2G.png](https://raw.githubusercontent.com/wqshen/awxreader/master/doc/ANI_VIS_R01_20230308_1400_FY2G.png)
+
+**4 lambert 投影标准纬度矫正**
+```python
+import os
+import cartopy.crs as ccrs
+import matplotlib.pyplot as plt
+from awx import Awx
+
+fpath = r"./sampledata/FY2G_ANI_IR1_R01_20241211_1300.AWX"  # lambert
+ds = Awx(pathfile=fpath,calibrating=True,adjust_lcc=True) #开启定标和调整LCC投影纬度矫正
+lat1 = ds.ad_lcc_lat1 #标准纬度1
+lat2 = ds.ad_lcc_lat2 #标准纬度2
+
+dar = ds.values.squeeze()
+
+plt.figure(figsize=(8, 8))
+
+if dar.projection == 1:
+    proj = ccrs.LambertConformal(central_longitude=dar.clon / 100,
+                                 central_latitude=dar.clat / 100,
+                                 standard_parallels=(lat1,
+                                                     lat2))
+    extent = [dar.x.min(), dar.x.max(), dar.y.min(), dar.y.max()]
+elif dar.projection == 2:
+    proj = ccrs.Mercator(central_longitude=dar.clon / 100,
+                         latitude_true_scale=dar.std_lat1_or_lon / 100.)
+    extent = [dar.x.min(), dar.x.max(), dar.y.min(), dar.y.max()]
+elif dar.projection == 4:
+    proj = ccrs.PlateCarree(central_longitude=dar.clon / 100.)
+    extent = [dar.lon.min(), dar.lon.max(), dar.lat.min(), dar.lat.max()]
+else:
+    raise NotImplementedError()
+ax = plt.axes(projection=proj)
+ax.set_extent(extent, crs=proj)
+ax.coastlines(resolution='110m')
+ax.gridlines(draw_labels=True)
+ax.pcolormesh(dar.x, dar.y, dar, cmap='Greys_r')
+plt.savefig(os.path.splitext(os.path.basename(fpath))[0] + '.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+```
+![ANI_VIS_R01_20230308_1400_FY2G_adj.png](https://github.com/sxcgc/AwxReader/blob/tryadj/doc/ANI_VIS_R01_20230308_1400_FY2G_adj.png)
+
 
 ### 命令行程序
 

@@ -3,8 +3,8 @@
 # @Email: wqshen91@gmail.com
 # @Date: 2023/2/14 16:22
 # @Last Modified by: wqshen
-
-
+# @Modified 20241223 chenguangcan, fix calibrating error 
+# @Modified 20241224 chenguangcan, fix LCC lat missing
 import os
 import sys
 import argparse
@@ -119,7 +119,7 @@ class AwxPositioning:
 @dataclass
 class Awx(object):
     pathfile: Optional[Union[str, PathLike]] = None
-    name: Optional[AwxFileName | AwxDaasFileName] = None
+    name: Optional[AwxFileName or AwxDaasFileName] = None
     head1: AwxHead = None
     head2: Union[AwxGeosImageHead, AwxPolarImageHead, AwxGridHead] = None
     palette: Optional[np.ndarray] = None
@@ -129,6 +129,9 @@ class Awx(object):
     data: Union[np.ndarray, dict] = None
     missing_value: Optional[float] = None
     _ds: Optional[xr.DataArray] = None
+    adjust_lcc: Optional[bool] = False
+    ad_lcc_lat1: Optional[float] = None
+    ad_lcc_lat2: Optional[float] = None
 
     def __post_init__(self):
         if self.pathfile is not None:
@@ -231,8 +234,15 @@ class Awx(object):
                 self.positioning = AwxPositioning(*unpack('8h', bytes_array[p:p_n]))
             n_obs = self.head2.width * self.head2.height
             data = np.frombuffer(bytes_array[pp: pp + n_obs], dtype=np.uint8, count=n_obs)
+            data = data.astype(np.uint16)
             if self.calibrating:
-                data = self.calibration[data]
+                # data /4
+                if self.head1.product_kind ==1:#GEO
+                    if self.head2.channel in [4]:
+                        data = self.calibration[data//4]*0.0001 # visable channel
+                    elif self.head2.channel in [1,2,3,5]:
+                        data = self.calibration[data*4//1]*0.01  # IR channel
+
             data = np.array(data).reshape(self.head2.height, self.head2.width)
         elif self.head1.product_kind == 3:
             n_obs = self.head2.size_h * self.head2.size_v
@@ -252,6 +262,12 @@ class Awx(object):
         """convert to xarray.DataArray"""
         attrs = self.head1.__dict__
         attrs.update(self.head2.__dict__)
+        if self.calibrating:
+            if self.head2.channel in [1,2,3,5]:
+                attrs.update({"Units":"K"})
+            elif self.head2.channel in [4]:
+                attrs.update({"Units":"%"})
+
         if self.head1.product_kind in (1, 2):
             coords = self.image_coordinate()
             if 'x' in coords and 'y' in coords:
@@ -308,6 +324,43 @@ class Awx(object):
             lons = xr.DataArray(lons, dims=('y', 'x'), coords={'y': y, 'x': x})
             lats = xr.DataArray(lats, dims=('y', 'x'), coords={'y': y, 'x': x})
             return {'time': [time], 'lat': lats, 'lon': lons, 'x': x, 'y': y, 'proj4': proj_str}
+#假设图片中心位置正确,使用多极循环遍历查找LCC投影标准纬度.
+    def estimate_lcc_lat(self):
+        h2 = self.head2
+        min_d = 9e10
+        result =[h2.std_lat1_or_lon/100,h2.std_lat2/100]
+        if self.adjust_lcc :
+            for step,dt in [[10,2],[2,0.5],[0.5,0.1]]:
+                t_lat1,t_lat2 = result
+                for lat1 in np.arange(t_lat1-step,t_lat1+step,dt):
+                    for lat2 in np.arange(t_lat2-step,t_lat2+step+step,dt):
+                        proj_str = f'+proj=lcc +lon_0={h2.clon / 100.} +lat_0={h2.clat / 100.} ' \
+                          f'+lat_1={lat1} +lat_2={lat2}'
+                        proj = CRS.from_proj4(proj_str)
+                        transformer = Transformer.from_crs("EPSG:4326", proj, always_xy=True)
+                        cx, cy = transformer.transform(h2.clon / 100., h2.clat / 100.)
+                        dx, dy = h2.reso_h / 100. * 1000, h2.reso_v / 100. * 1000,
+                        ll_x = cx - (dx * h2.width / 2.)
+                        ll_y = cy - (dy * h2.height / 2.)
+                        ur_x = cx + (dx * (h2.width / 2. - 1))
+                        ur_y = cy + (dy * (h2.height / 2. - 1))
+                        x = np.linspace(ll_x, ur_x, h2.width)
+                        y = np.linspace(ur_y, ll_y, h2.height)
+                        transformer = Transformer.from_crs(proj, "EPSG:4326", always_xy=True)
+                        _ul_lon,_lr_lat = transformer.transform(ll_x, ll_y)
+                        _,_ul_lat = transformer.transform(cx,ur_y)
+                        _lr_lon,_ = transformer.transform(ur_x,ur_y)
+                        _t_d = (_ul_lon-h2.ul_lon/100)**2+(_lr_lat-h2.lr_lat/100)**2+\
+                                      (_ul_lat-h2.ul_lat/100)**2+(_lr_lon-h2.lr_lon/100)**2
+                        if min_d > _t_d:
+                            min_d = _t_d
+                            result = [lat1,lat2]
+                self.ad_lcc_lat1 = result[0]
+                self.ad_lcc_lat2 = result[1]
+        else:
+            if self.ad_lcc_lat1 != None and self.ad_lcc_lat2 != None:
+                result=[self.ad_lcc_lat1,self.ad_lcc_lat2]
+        return result 
 
     def proj_scale_factor(self, std_parallel):
         """calculate projection scale factor"""
@@ -330,13 +383,16 @@ class Awx(object):
         h2 = self.head2
         proj_type = h2.projection
         if proj_type == 1:
+
+            lat1,lat2 = self.estimate_lcc_lat()
             proj = f'+proj=lcc +lon_0={h2.clon / 100.} +lat_0={h2.clat / 100.} ' \
-                   f'+lat_1={h2.std_lat1_or_lon / 100.} +lat_2={h2.std_lat2 / 100.}'
+                  f'+lat_1={lat1} +lat_2={lat2}'
+
         elif proj_type == 2:
             # TODO: find the reason why the std lat in data head is wrong ?
             # set std lat to 0 (default), otherwise the reprojected coordination error
             # proj = f'+proj=merc +lon_0={h2.clon / 100.} +lat_ts={h2.std_lat1_or_lon / 100.}'
-            proj = f'+proj=merc +lon_0={h2.clon / 100.}'
+            proj = f'+proj=merc +lon_0={h2.clon / 100.} '
         elif proj_type == 3:
             proj = f'+proj=stere +lat_0={h2.clat / 100.} +lon_0={h2.clon / 100.} ' \
                    f'+k={self.proj_scale_factor(h2.std_lat1_or_lon / 100.)}'
